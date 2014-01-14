@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<head>
+  <link rel="stylesheet" href="static/css/jsonary-core.css" />
+  <link rel="stylesheet" href="static/css/main.css" />
+  <link rel="stylesheet" href="static/css/layout.css" />
+  <link rel="stylesheet" href="static/js/dndtree/dndtree.css" />
+</head>
+
+<body oncontextmenu="return false;">
+
+  <div id="scene">
+  </div>
+
+  <div id="sidebar">
+    <div id="dragbar"></div>
+    <div id="tree"></div>
+    <div>
+      <button id="add-child">Add child</button>
+      <button id="delete-selected">Delete</button>
+    </div>
+    <div id="spec"></div>
+  </div>
+
+
+  <!-- JS  -->
+
+  <script src="static/js/libs/jsonary/core/jsonary-core.js"></script>
+  <script src="static/js/libs/jsonary/plugins/jsonary.undo.js"></script>
+
+  <script src="static/js/three-scene/three.min.js"></script>
+  <script src="static/js/three-scene/OrthographicAspectCamera.js"></script>
+  <script src="static/js/three-scene/TrackballControls.js"></script>
+  <script src="static/js/three-scene/three-scene.js"></script>
+  <script src="static/js/three-scene/view.js"></script>
+
+  <script src="static/js/dndtree/dndtree.js"></script>
+  <script src="static/js/libs/json-patch-duplex.js"></script>
+
+  <script src="static/js/renderer.js"></script>
+  <!-- <script src="static/js/plain-renderer.js"></script> -->
+  <script src="static/js/backend.js"></script>
+  <script src="static/js/main.js"></script>
+
+  <script>
+   // Takes care of resizing the sidebar
+
+   var i = 0,
+   sidebar = document.getElementById("sidebar"),
+   view = document.getElementById("view"),
+   dragbar = document.getElementById("dragbar");
+
+   dragbar.onmousedown = function(e){
+
+        e.preventDefault();
+        document.onmousemove = function(e) {
+          sidebar.style.width = e.pageX + "px";
+          view.style.left = e.pageX + "px";
+       };
+   };
+   document.onmouseup = function(e) {
+       document.onmousemove = null;
+   };
+  </script>
+
+</body>

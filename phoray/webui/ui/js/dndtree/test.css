@@ -1,0 +1,22 @@
+.node .description .moon {
+    font-style: italic;
+}
+
+.node.level-0 .description  {
+    font-size: 20pt;
+}
+
+.node.level-1 .description  {
+    font-size: 18pt;
+}
+
+.node.level-2 .description  {
+    font-size: 16pt;
+}
+
+#tree {
+    width: 500px;
+    border: 1px solid grey;
+    padding: 5px;
+    overflow: auto;
+}

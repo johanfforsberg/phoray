@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<style media="screen" type="text/css">
+ #scene {
+   width: 500px;
+   height: 500px;
+ }
+</style>
+
+<body oncontextmenu="return false;">
+
+  <div id="scene"></div>
+
+  <script src="three.min.js"></script>
+  <script src="OrthographicAspectCamera.js"></script>
+  <script src="TrackballControls.js"></script>
+
+  <script src="view.js"></script>
+  <script src="three-scene.js"></script>
+  <script type="text/javascript">
+
+   var data = {
+     position: {x: 1, y: 0, z: 0},
+     rotation: {x: 0, y: 0, z: 0},
+     mesh: {verts: [[0,0,1], [1,0,0], [0,1,0]],
+            faces: [[0,1,2]]},
+     children: [
+       {position: {x: 0, y: 1, z: 0},
+        rotation: {x: (Math.PI / 4), y: 0, z: 0},
+        mesh: {verts: [[1,1,2], [2,1,1], [1,2,1]],
+               faces: [[0,1,2]]}}
+     ]
+   };
+
+   var model = {
+     type: "Frame",
+     args: {
+       position: {x: 1, y: 0, z: 0},
+       rotation: {x: 0, y: 0, z: 0},
+       mesh: {verts: [[0,0,1], [1,0,0], [0,1,0]],
+              faces: [[0,1,2]]},
+       children: [
+         {type: "Mirror",
+          args: {
+             position: {x: 0, y: 1, z: 0},
+             rotation: {x: (Math.PI / 4), y: 0, z: 0},
+             mesh: {verts: [[1,1,2], [2,1,1], [1,2,1]],
+                    faces: [[0,1,2]]}
+           }
+         }
+       ]
+     }
+   };
+
+   var el = document.getElementById("scene");
+   var scene = new ThreeScene(el, model,
+                              {childPath: "args/children",
+                               positionPath: "args/position",
+                               rotationPath: "args/rotation",
+                               vertexPath: "args/mesh/verts",
+                               facePath: "args/mesh/faces"});
+
+   scene.view.center({x: 1, y: 1, z: 0});
+  </script>
+
+</body>

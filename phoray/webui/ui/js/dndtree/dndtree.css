@@ -1,0 +1,69 @@
+/* Prevent the text contents of draggable elements from being selectable. */
+[draggable] {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* Required to make elements draggable in old WebKit */
+    -khtml-user-drag: element;
+    -webkit-user-drag: element;
+}
+
+.root {
+    padding: 4px 0;
+}
+
+.root .node {
+    position: relative;
+}
+
+.root .node .before {
+    position: absolute;
+    width: 100%;
+    height: 8px;
+    top: -4px;
+    z-index: 5;
+    background-color: red;
+    opacity: 0;
+}
+
+.root .node .middle {
+    position: relative;
+    /* z-index: 20; */
+}
+
+.root .node .after {
+    position: absolute;
+    z-index: 10;
+    background-color: green;
+    width: 100%;
+    height: 8px;
+    bottom: -4px;
+    opacity: 0;
+}
+
+.root .node .description {
+    pointer-events: none;
+}
+
+.root .node .description button {
+    pointer-events: auto;
+}
+
+.root .node .description.selected {
+    color: white;
+    background: blue;
+}
+
+.root .node .children {
+    padding-left: 20px;
+}
+
+.root .node .over {
+    background-color: #bbddff;
+    opacity: 1;
+}
+
+.root .node .dragging {
+    opacity: 0.5;
+}
