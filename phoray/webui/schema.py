@@ -43,7 +43,7 @@ def schema_from_class(cls, mapping):
                 m2 = type_or_ref(spec["subtype"], mapping)
                 if m2 is not None:
                     props2[arg]["items"] = m2
-            if spec.get("value"):
+            if spec.get("value") is not None:
                 props2[arg]["default"] = spec["value"]
     args["additionalProperties"] = False
     args["required"] = list(props2.keys())
