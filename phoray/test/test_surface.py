@@ -110,13 +110,14 @@ class EllipsoidSurfaceTestCase(PhorayTestCase):
 class ToroidSurfaceTestCase(PhorayTestCase):
 
     def test_reflect(self):
-        """Check that a toroid tends toward a sphere when R shrinks."""
-        sphere = Toroid(1e-20, 1)
-        rays = Rays([(0, 0, -1)], array([(A, B, 1)]) / sqrt(A**2 + B**2 + 1),
+        """Check that a toroid tends toward a sphere when r -> R ."""
+        sphere = Toroid(1, 1)
+        C, D = 0.01 * A, 0.01 * B
+        rays = Rays([(0, 0, -1)], array([(C, D, 1)]) / sqrt(C**2 + D**2 + 1),
                     None)
         reflection = sphere.reflect(rays)
         self.assertTrue(allclose(reflection.endpoints + reflection.directions,
-                                 [(0, 0, -1)]))
+                                 [(0, 0, -1)], atol=1e-5))
 
 
 class ParaboloidSurfaceTestCase(PhorayTestCase):
@@ -125,7 +126,7 @@ class ParaboloidSurfaceTestCase(PhorayTestCase):
         """Test that a paraboloid parallelizes light originating from the focal
         point.
         """
-        surf = Paraboloid(1, 1, -1)
+        surf = Paraboloid(1, 1, 1)
         ray = Rays([(0, 0, -0.25)], [(A, B, 1)], None)
         reflection = surf.reflect(ray)
         self.assertAlmostEquals(reflection.directions[0][0], 0)
