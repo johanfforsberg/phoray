@@ -246,16 +246,16 @@ class _Toroid(Surface):
 
     """A toroidal surface.
 
-    Note: The meridional (in plane of reflection) radius R is the radius
-    of the outer *surface*, not the radius of the center of the "ring".
-    This is the conventional definition (according to Peatman.)
+    Note: The meridional (plane of reflection; xz) radius R is the
+    radius of the outer *surface*, not the radius at the center of the
+    ring. This is the conventional definition (according to Peatman).
     """
 
     def __init__(self, R:Length=1, r:Length=1, *args, **kwargs):
         self.R = R
-        self.r = min(R - 1e-10, r)  # crude!
+        self.r = min(R - 1e-20, r)  # crude!
         self._R = _R = R - r
-        self.offset = array((0, 0, _R + r))
+        self.offset = array((0, 0, R))
         if "xsize" in kwargs:
             kwargs["xsize"] = min(kwargs["xsize"], 2*abs(_R + r))
         if "ysize" in kwargs:
