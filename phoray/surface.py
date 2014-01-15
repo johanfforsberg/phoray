@@ -15,7 +15,7 @@ from . import Length, get_signature, object_to_dict
 
 
 __all__ = ("Plane", "Cylinder", "Sphere", "Ellipsoid",
-           "Toroid", "ToroidFermat", "Paraboloid")
+           "Toroid", "Paraboloid")
 
 
 class Surface(object):
@@ -242,7 +242,7 @@ class Sphere(Surface):
         return q.T - self.offset
 
 
-class Toroid(Surface):
+class _Toroid(Surface):
 
     """A toroidal surface.
 
@@ -306,18 +306,31 @@ class Toroid(Surface):
         return q.T - self.offset
 
 
-class ToroidFermat(Toroid):
+class Toroid(_Toroid):
 
-    def __init__(self, incidence_angle:float=10,
+    """
+    A Toroidal surface can also be described by the normal angle of
+    incidence and the lengths of the entrance and exit arms. A source
+    positioned at the end of the entrance arm will then be focused at
+    the end of the exit arm.
+    """
+
+    def __init__(self, use_Fermat:bool=False, incidence_angle:float=10,
                  entrance_arm:Length=1, exit_arm:Length=1, *args, **kwargs):
+        self.use_Fermat = use_Fermat
         self.incidence_angle = incidence_angle
         self.entrance_arm = entrance_arm
         self.exit_arm = exit_arm
-        R = 1 / ((1/entrance_arm + 1/exit_arm) * cos(radians(incidence_angle)) / 2)
-        r = 1 / ((1/entrance_arm + 1/exit_arm) / (2 * cos(radians(incidence_angle))))
-        kwargs["R"] = R
-        kwargs["r"] = r
-        Toroid.__init__(self, *args, **kwargs)
+
+        if use_Fermat:
+            R = 1 / ((1/entrance_arm + 1/exit_arm) *
+                     cos(radians(incidence_angle)) / 2)
+            r = 1 / ((1/entrance_arm + 1/exit_arm) /
+                     (2 * cos(radians(incidence_angle))))
+            kwargs["R"] = R
+            kwargs["r"] = r
+
+        _Toroid.__init__(self, *args, **kwargs)
 
 
 class Cylinder(Surface):
