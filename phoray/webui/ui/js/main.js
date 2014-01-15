@@ -82,6 +82,11 @@ Jsonary.getData("system", function (data) {
         }
     };
 
+    document.getElementById("send-data").onclick = function (e) {
+        send();
+    };
+
+
     // Obtain a mesh for a given geometry specification. Also keeps
     // a cache of meshes to prevent needless recalculation.
     // TODO: prune this cache periodically, now it grows monotonically
