@@ -54,7 +54,6 @@ def make_schema(classes):
     """Create a JSON schema covering all the available classes."""
 
     schema = OrderedDict()
-    schema["$schema"] = "system-schema.json"
     schema["title"] = "Phoray schema"
     schema["$ref"] = "#/definitions/frame/GroupFrame"
 
