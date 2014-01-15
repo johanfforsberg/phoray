@@ -30,7 +30,7 @@ def get_classes(module, baseclass):
                          for name in module_dict["__all__"])
     else:
         class_members = sorted(getmembers(module, isclass),
-                              key=itemgetter(0))
+                               key=itemgetter(0))
 
     return OrderedDict(("%s.%s" % (cls.get_module_name(), name), cls)
                        for name, cls
@@ -43,9 +43,9 @@ classes = dict(frame=get_classes(frame, frame.Frame),
                element=get_classes(element, element.Element),
                source=get_classes(source, source.Source),
                surface=surface_classes)
-classes["member"] = dict(chain(classes["frame"].items(),
-                               classes["element"].items(),
-                               classes["source"].items()))
+classes["member"] = OrderedDict(chain(classes["frame"].items(),
+                                      classes["element"].items(),
+                                      classes["source"].items()))
 
 schemas = make_schema(classes)
 
