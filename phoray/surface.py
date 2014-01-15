@@ -440,12 +440,13 @@ class Paraboloid(Surface):
         self.a = a
         self.b = b
         self.c = c
+
         Surface.__init__(self, *args, **kwargs)
 
-        self.d = -2 * c / a ** 2
-        self.e = -2 * c / b ** 2
+        self.d = 2 * c / a ** 2
+        self.e = 2 * c / b ** 2
 
-        self.concave = a * b * c < 0
+        self.concave = a * b * c > 0
 
     def normal(self, p):
         px, py, pz = p.T
@@ -455,7 +456,7 @@ class Paraboloid(Surface):
     def intersect(self, rays):
         rx, ry, rz = r = rays.directions.T
         px, py, pz = p = rays.endpoints.T
-        a2, b2, c = self.a ** 2, self.b ** 2, self.c
+        a2, b2, c = self.a ** 2, self.b ** 2, -self.c
         t = quadratic(rx ** 2 / a2 + ry ** 2 / b2,
                       2 * px * rx / a2 + 2 * py * ry / b2 - rz / c,
                       px ** 2 / a2 + py ** 2 / b2 - pz / c)
