@@ -244,7 +244,12 @@ class Sphere(Surface):
 
 class Toroid(Surface):
 
-    """A toroidal surface."""
+    """A toroidal surface.
+
+    Note: The meridional (in plane of reflection) radius R is the radius
+    of the outer *surface*, not the radius of the center of the "ring".
+    This is the conventional definition (according to Peatman.)
+    """
 
     def __init__(self, R:Length=1, r:Length=1, *args, **kwargs):
         self.R = R
