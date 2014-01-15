@@ -2,13 +2,7 @@ Jsonary.getData("system", function (data) {
     var meshes = {},
         spec_el = document.getElementById("spec");
 
-    // Why is this hack needed? It used to work without it...
-    Backend.get("system-schema.json", null, function () {
-        var schema = JSON.parse(this.responseText);
-        data.addSchema(Jsonary.createSchema(schema));
-        console.log(data.validate());
-    });
-
+    data.addSchema("system-schema.json");
     data = data.editableCopy();  // make data editable
 
     // Create a drag-and-drop element tree
@@ -62,6 +56,8 @@ Jsonary.getData("system", function (data) {
         }
     );
 
+    // Some nice buttons
+
     document.getElementById("add-child").onclick = function (e) {
         var path = tree.getSelectedPath();
         if (path !== undefined) {
@@ -103,6 +99,7 @@ Jsonary.getData("system", function (data) {
         }
     };
 
+    // Ask the server to trace the current system
     var trace = function (n) {
         n = n || 100;
         var t0 = Date.now();
@@ -113,10 +110,6 @@ Jsonary.getData("system", function (data) {
         });
     };
 
-    function select_item (path) {
-        tree.selectPath(path);
-    }
-
     // Prepare the 3D representation
     var scene = new ThreeScene(document.getElementById("scene"),
                                data.value(), meshes,
@@ -124,7 +117,7 @@ Jsonary.getData("system", function (data) {
                                 positionPath: "args/position",
                                 rotationPath: "args/rotation",
                                 meshFunction: get_mesh,
-                                onSelect: select_item});
+                                onSelect: tree.selectPath});
 
     // Function to debounce change listener, accumulating patches
     var debounce = function (func, threshold) {
@@ -143,6 +136,8 @@ Jsonary.getData("system", function (data) {
         };
     };
 
+    // Takes a Jsonary patch object and returns the corresponding
+    // JSON-patch.
     var decode_patch = function (patch) {
         var json_patch = [];
         patch.operations.forEach(function (o, i) {
@@ -156,6 +151,7 @@ Jsonary.getData("system", function (data) {
         return json_patch;
     };
 
+    // Applies a JSON-patch on the data
     var apply_patch = function (patch, data) {
         Jsonary.batch();
         patch.forEach(function (p) {
@@ -173,30 +169,34 @@ Jsonary.getData("system", function (data) {
         Jsonary.batchDone();
     };
 
+    // Send the current data to the server
     function send() {
         Backend.post("system", data.value(), function () {
             var server_patch = JSON.parse(this.responseText);
             console.log("system patch", server_patch);
             trace(100);
-            apply_patch(server_patch, data);
+            if (server_patch.length == 0) {
+                var t0 = Date.now();
+                //tree.update(patch);   // this breaks, but why?!
+                tree.setData(data.value());
+                console.log("tree redraw took " + (Date.now() - t0) + " ms");
+                if (scene) {
+                    t0 = Date.now();
+                    scene.setData(data.value());
+                    console.log("scene redraw took " + (Date.now() - t0) + " ms");
+                }
+            } else
+                apply_patch(server_patch, data);
         });
     }
 
+    // Called every time the data is changed, e.g. by the user
     Jsonary.registerChangeListener(debounce(function (patch, doc) {
         // Need to debounce here, because changing class can cause
         // multiple change events in some cases.
 
         console.log("**CHANGE***", patch, doc);
 
-        var t0 = Date.now();
-        //tree.update(patch);   // this breaks, but why?!
-        tree.setData(data.value());
-        console.log("tree redraw took " + (Date.now() - t0) + " ms");
-        if (scene) {
-            t0 = Date.now();
-            scene.setData(data.value());
-            console.log("scene redraw took " + (Date.now() - t0) + " ms");
-        }
         send();
 
     }, 10));
