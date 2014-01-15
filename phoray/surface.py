@@ -253,7 +253,7 @@ class _Toroid(Surface):
 
     def __init__(self, R:Length=1, r:Length=1, *args, **kwargs):
         self.R = R
-        self.r = r
+        self.r = min(R - 1e-10, r)  # crude!
         self._R = _R = R - r
         self.offset = array((0, 0, _R + r))
         if "xsize" in kwargs:
