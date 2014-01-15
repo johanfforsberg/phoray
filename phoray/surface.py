@@ -249,17 +249,18 @@ class Toroid(Surface):
     def __init__(self, R:Length=1, r:Length=1, *args, **kwargs):
         self.R = R
         self.r = r
-        self.offset = array((0, 0, self.R + self.r))
+        self._R = _R = R - r
+        self.offset = array((0, 0, _R + r))
         if "xsize" in kwargs:
-            kwargs["xsize"] = min(kwargs["xsize"], 2*abs(R + r))
+            kwargs["xsize"] = min(kwargs["xsize"], 2*abs(_R + r))
         if "ysize" in kwargs:
             kwargs["ysize"] = min(kwargs["ysize"], 2*abs(r))
         Surface.__init__(self, *args, **kwargs)
 
     def normal(self, p):
         x, z, y = (p + self.offset).T
-        a = x**2 + y**2 + z**2 - self.r**2 - self.R**2
-        n = array((4*x * a, 4*z * a + 8 * self.R**2 * z, 4*y * a))
+        a = x**2 + y**2 + z**2 - self.r**2 - self._R**2
+        n = array((4*x * a, 4*z * a + 8 * self._R**2 * z, 4*y * a))
         return -(n / vector_norm(n, axis=0)).T
 
     def intersect(self, rays):
@@ -267,22 +268,22 @@ class Toroid(Surface):
         rx, ry, rz = r = rays.directions.T
         ax, ay, az = a = (rays.endpoints + self.offset).T
 
-        R = self.R
+        _R = self._R
         _r = self.r
 
         A = rx**2 + ry**2 + rz**2
         B = 2*(ax*rx + ay*ry + az*rz)
-        C = (ax**2 + ay**2 + az**2) - _r**2 - R**2
+        C = (ax**2 + ay**2 + az**2) - _r**2 - _R**2
 
         poly = array((A**2,
                       2*A*B,
-                      B**2 + 2*A*C + 4*R**2*ry**2,
-                      2*B*C + 8*R**2*ay*ry,
-                      C**2 + 4*R**2*ay**2 - 4*R**2*_r**2)).T
+                      B**2 + 2*A*C + 4*_R**2*ry**2,
+                      2*B*C + 8*_R**2*ay*ry,
+                      C**2 + 4*_R**2*ay**2 - 4*_R**2*_r**2)).T
         t = array([np.roots(p) for p in poly]).T
 
         # Figure out which intersection we should use
-        if self.R > 0:
+        if self._R > 0:
             p = where(az + np.max(t, axis=0) * rz > 0,
                       a + np.real(np.max(t, axis=0)) * r,
                       a + np.real(np.min(t, axis=0)) * r)
@@ -307,11 +308,11 @@ class ToroidFermat(Toroid):
         self.incidence_angle = incidence_angle
         self.entrance_arm = entrance_arm
         self.exit_arm = exit_arm
-        R = 1 / ((1/entrance_arm + 1/exit_arm) * cos(incidence_angle) / 2)
-        r = 1 / ((1/entrance_arm + 1/exit_arm) / (2 * cos(incidence_angle)))
+        R = 1 / ((1/entrance_arm + 1/exit_arm) * cos(radians(incidence_angle)) / 2)
+        r = 1 / ((1/entrance_arm + 1/exit_arm) / (2 * cos(radians(incidence_angle))))
         kwargs["R"] = R
         kwargs["r"] = r
-        Toroid.__init__(self, R=R, r=r, *args, **kwargs)
+        Toroid.__init__(self, *args, **kwargs)
 
 
 class Cylinder(Surface):
