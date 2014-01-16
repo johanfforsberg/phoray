@@ -74,7 +74,7 @@ var View;
         light.lookAt( this.scene.position );
         this.scene.add( light );
 
-        light = new THREE.AmbientLight(0x400040);
+        light = new THREE.AmbientLight(0x404040);
         this.scene.add(light);
 
     };

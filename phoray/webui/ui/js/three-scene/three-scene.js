@@ -198,7 +198,7 @@ var ThreeScene;
         var mesh = new THREE.Object3D();
         var frontmat = new THREE.MeshLambertMaterial(
             {
-                color: 0x00FFFF,
+                color: 0xAAFFFF,
                 transparent: true,
                 opacity: 0.7,
                 side: THREE.FrontSide,
@@ -208,7 +208,7 @@ var ThreeScene;
         mesh.add(mesh.front);
         var backmat = new THREE.MeshLambertMaterial(
             {
-                color: 0xFFFF00,
+                color: 0xFFFF88,
                 transparent: true,
                 opacity: 0.7,
                 side: THREE.BackSide,
@@ -313,9 +313,9 @@ var ThreeScene;
                     //color: color_from_string_times(colors[system], Math.random()),
                     //color: color_from_string_times(colors[system]),
                     color: color_from_string("#ffffff"),
-                    //opacity: 0.02, linewidth: 1, dashSize: 0.0002, gapSize: 0.001,
-		    //depthTest: false,
-		    blending: THREE.AdditiveBlending, //transparent: true
+                    opacity: 0.2, linewidth: 1, //dashSize: 0.0002, gapSize: 0.001,
+		    depthTest: true,
+		    blending: THREE.AdditiveBlending, transparent: true
                 }), THREE.LinePieces);
 	    geometry.computeLineDistances();
             traces.add(line);
