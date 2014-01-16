@@ -44,6 +44,22 @@ class Mirror(Element):
 
     """A mirror reflects incoming rays in its surface."""
 
+    def __init__(self, use_fermat:bool=False, incidence_angle:float=10,
+                 entrance_arm:float=1, exit_arm:float=1, *args, **kwargs):
+        self.exit_arm = exit_arm
+        self.entrance_arm = entrance_arm
+        self.incidence_angle = incidence_angle
+        self.use_fermat = use_fermat
+        geo = kwargs.get("geometry")
+        if hasattr(geo, "from_fermat"):
+            if use_fermat:
+                kwargs["geometry"] = geo.from_fermat(incidence_angle,
+                                                     entrance_arm, exit_arm)
+        else:
+            self.use_fermat = False
+
+        Element.__init__(self, *args, **kwargs)
+
     def propagate(self, rays):
         return self.geometry.reflect(rays)
 

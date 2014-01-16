@@ -169,6 +169,7 @@ class Surface(object):
 
 
 class Plane(Surface):
+
     """
     A plane through the origin and perpendicular to z, i.e. z = 0.
     """
@@ -242,7 +243,7 @@ class Sphere(Surface):
         return q.T - self.offset
 
 
-class _Toroid(Surface):
+class Toroid(Surface):
 
     """A toroidal surface.
 
@@ -252,14 +253,14 @@ class _Toroid(Surface):
     """
 
     def __init__(self, R:Length=1, r:Length=1, *args, **kwargs):
-        self.R = R
-        self.r = min(R - 1e-10, r)  # crude!
-        self._R = _R = R - r
+        self.R = R = abs(R)
+        self.r = r = min(R - 1e-10, abs(r))  # crude!
+        self._R = R - r
         self.offset = array((0, 0, R))
         if "xsize" in kwargs:
-            kwargs["xsize"] = min(kwargs["xsize"], 2*abs(_R + r))
+            kwargs["xsize"] = min(kwargs["xsize"], abs(R))
         if "ysize" in kwargs:
-            kwargs["ysize"] = min(kwargs["ysize"], 2*abs(r))
+            kwargs["ysize"] = min(kwargs["ysize"], abs(r))
         Surface.__init__(self, *args, **kwargs)
 
     def normal(self, p):
@@ -305,32 +306,10 @@ class _Toroid(Surface):
                   p, nans)
         return q.T - self.offset
 
-
-class Toroid(_Toroid):
-
-    """
-    A Toroidal surface can also be described by the normal angle of
-    incidence and the lengths of the entrance and exit arms. A source
-    positioned at the end of the entrance arm will then be focused at
-    the end of the exit arm.
-    """
-
-    def __init__(self, use_Fermat:bool=False, incidence_angle:float=10,
-                 entrance_arm:Length=1, exit_arm:Length=1, *args, **kwargs):
-        self.use_Fermat = use_Fermat
-        self.incidence_angle = incidence_angle
-        self.entrance_arm = entrance_arm
-        self.exit_arm = exit_arm
-
-        if use_Fermat:
-            R = 1 / ((1/entrance_arm + 1/exit_arm) *
-                     cos(radians(incidence_angle)) / 2)
-            r = 1 / ((1/entrance_arm + 1/exit_arm) /
-                     (2 * cos(radians(incidence_angle))))
-            kwargs["R"] = R
-            kwargs["r"] = r
-
-        _Toroid.__init__(self, *args, **kwargs)
+    def from_fermat(self, angle, arm_in, arm_out):
+        R = 1 / ((1/arm_in + 1/arm_out) * (cos(radians(angle)) / 2))
+        r = 1 / ((1/arm_in + 1/arm_out) / (2 * cos(radians(angle))))
+        return Toroid(R=R, r=r, xsize=self.xsize, ysize=self.ysize)
 
 
 class Cylinder(Surface):
