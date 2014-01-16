@@ -199,6 +199,8 @@ var ThreeScene;
         var frontmat = new THREE.MeshLambertMaterial(
             {
                 color: 0xFFFF00,
+                transparent: true,
+                opacity: 0.7,
                 side: THREE.FrontSide,
                 shading: THREE.SmoothShading
             });
@@ -207,6 +209,8 @@ var ThreeScene;
         var backmat = new THREE.MeshLambertMaterial(
             {
                 color: 0xFF00FF,
+                transparent: true,
+                opacity: 0.7,
                 side: THREE.BackSide,
                 shading: THREE.SmoothShading
             });
