@@ -73,6 +73,10 @@ var View;
         light.position.set( 0, -10, -5 );
         light.lookAt( this.scene.position );
         this.scene.add( light );
+
+        light = new THREE.AmbientLight(0x400040);
+        this.scene.add(light);
+
     };
 
     View.prototype.setup_grid = function () {

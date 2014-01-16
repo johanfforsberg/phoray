@@ -198,7 +198,7 @@ var ThreeScene;
         var mesh = new THREE.Object3D();
         var frontmat = new THREE.MeshLambertMaterial(
             {
-                color: 0xFFFF00,
+                color: 0x00FFFF,
                 transparent: true,
                 opacity: 0.7,
                 side: THREE.FrontSide,
@@ -208,7 +208,7 @@ var ThreeScene;
         mesh.add(mesh.front);
         var backmat = new THREE.MeshLambertMaterial(
             {
-                color: 0xFF00FF,
+                color: 0xFFFF00,
                 transparent: true,
                 opacity: 0.7,
                 side: THREE.BackSide,
@@ -234,7 +234,7 @@ var ThreeScene;
             geom.vertices.push(new THREE.Vector3(verts[x][0], verts[x][1], verts[x][2]));
         var outline = new THREE.Line(
             geom, new THREE.LineBasicMaterial({
-		dashSize: .1, gapSize: .2, color: 0xFFFFFF, linewidth: 3}),
+		dashSize: .1, gapSize: .2, color: 0xFFFF88, linewidth: 3}),
             THREE.LineStrip);
         outline.name = "outline";
         outline.renderDepth = 1000;
