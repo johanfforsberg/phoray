@@ -1,3 +1,4 @@
+import abc
 from collections import defaultdict
 from math import *
 
@@ -5,13 +6,12 @@ from .member import Member
 from .element import Element, Glass, Mirror
 from .surface import Sphere
 from .source import Source
-from .ray import Ray
 
 
-class Frame(Member):
+class Frame(Member, metaclass=abc.ABCMeta):
 
-    def __init__(self, children:[Member], *args, **kwargs):
-        self.children = children
+    def __init__(self, children:[Member]=[], *args, **kwargs):
+        self.children = children or []
         Member.__init__(self, *args, **kwargs)
 
     def _localize_trace(self, trace):
@@ -28,14 +28,22 @@ class Frame(Member):
                 outgoing[source] += [self.globalize(r) for r in rays]
         return outgoing
 
+    @abc.abstractmethod
+    def _blah():
+        # Only here to make this class abstract. There must be a better
+        # way..!
+        pass
+
 
 class GroupFrame(Frame):
-    pass
+
+    def _blah():
+        pass
 
 
 # === stuff below should be moved into plugins or something ===
 
-class SphericalLens(Frame):
+class SphericalLens(GroupFrame):
 
     def __init__(self, R1:float=1.0, R2:float=1.0, thickness:float=0.1,
                  index:float=1.5, *args, **kwargs):
@@ -53,22 +61,24 @@ class SphericalLens(Frame):
         Frame.__init__(self, children=[glass1, glass2], *args, **kwargs)
 
 
-class SequentialElement(Frame):
+class SequentialElement(GroupFrame):
 
     def __init__(self, a:int=0, b:float=1.0, *args, **kwargs):
         self.a = a
         self.b = b
         Frame.__init__(self, *args, **kwargs)
 
-    def make_member(self):
-        return Mirror(geometry=Sphere())
 
-
-class SequentialSystem(Frame):
+class SequentialSystem(GroupFrame):
 
     def __init__(self, elements:[SequentialElement]=[], *args, **kwargs):
-        self.elements = elements
-        if "children" in kwargs:
-            del kwargs["children"]
-        children = [SequentialElement(el).make_member() for el in elements]
-        Frame.__init__(self, children=children, *args, **kwargs)
+        elements = elements or []
+        self.elements = []
+        children = kwargs.get("children", [])
+        for i, child in enumerate(children):
+            try:
+                el = elements[i]
+            except IndexError:
+                el = SequentialElement()
+            self.elements.append(el)
+        Frame.__init__(self, *args, **kwargs)

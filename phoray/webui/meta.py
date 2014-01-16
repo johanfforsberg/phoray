@@ -1,12 +1,11 @@
-import os
-from pprint import pprint
-from inspect import getmembers, isclass, getmro
+from collections import OrderedDict
+from inspect import getmembers, isclass, getmro, isabstract
 from imp import find_module, load_module
 from itertools import chain
 from operator import itemgetter
-from collections import OrderedDict
+from pprint import pprint
 
-from phoray import frame, element, surface, source, member
+from phoray import PhorayBase, frame, element, surface, source
 from .schema import make_schema
 
 # Some plugin stuff, not really ready for use
@@ -21,9 +20,8 @@ from .schema import make_schema
 #     for name, cls in sorted(getmembers(module, isclass), key=itemgetter(0))]
 
 
-# List all the things we have available, by listing all the subclasses
-# of the member baseclasses.
-def get_classes(module, baseclass):
+def get_classes(module):
+    """Return a dict of Phoray classes contained in a given module."""
     module_dict = module.__dict__
     if "__all__" in module_dict:
         class_members = ((name, module_dict[name])
@@ -31,21 +29,19 @@ def get_classes(module, baseclass):
     else:
         class_members = sorted(getmembers(module, isclass),
                                key=itemgetter(0))
-
     return OrderedDict(("%s.%s" % (cls.get_module_name(), name), cls)
-                       for name, cls
-                       in class_members
-                       if baseclass in getmro(cls)[1:])
+                       for name, cls in class_members
+                       if cls.__module__ == module.__name__ and
+                       PhorayBase in getmro(cls) and
+                       not isabstract(cls))
 
-surface_classes = get_classes(surface, surface.Surface)
-
-classes = dict(frame=get_classes(frame, frame.Frame),
-               element=get_classes(element, element.Element),
-               source=get_classes(source, source.Source),
-               surface=surface_classes)
+# List all the things we can create
+classes = dict(frame=get_classes(frame), element=get_classes(element),
+               source=get_classes(source), surface=get_classes(surface))
 classes["member"] = OrderedDict(chain(classes["frame"].items(),
                                       classes["element"].items(),
                                       classes["source"].items()))
+print("\n".join(classes["member"].keys()))
 
 schemas = make_schema(classes)
 
@@ -64,6 +60,7 @@ def create_geometry(spec={}):
 def create_member(spec={}, path=""):
     member_type = spec.get("class", list(classes["member"].keys())[0])
     cls = classes["member"][member_type]
+    print(cls.get_module_name(), cls.__name__)
     schema = schemas["definitions"][cls.get_module_name()][cls.__name__]["properties"]\
              ["args"]["properties"]
     args = {key: value for key, value in spec.get("args", {}).items()

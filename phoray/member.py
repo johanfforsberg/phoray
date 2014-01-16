@@ -1,5 +1,5 @@
 from math import *
-import sys
+from abc import ABCMeta, abstractmethod
 
 from numpy import array, dot, ones, zeros, radians, ndarray
 from numpy.linalg import inv as inverse_matrix
@@ -8,10 +8,10 @@ from .transformations import (euler_matrix, translation_matrix,
                               concatenate_matrices)
 from .ray import Rays
 from .phoray import current_id
-from . import Position, get_baseclass, get_signature, object_to_dict
+from . import PhorayBase, Position
 
 
-class Member(object):
+class Member(PhorayBase, metaclass=ABCMeta):
 
     """Baseclass for a generalized member of an optical system.
 
@@ -91,13 +91,6 @@ class Member(object):
     def z_axis(self):
         return self.globalize_vector(array((0, 0, 1)))
 
-    @classmethod
-    def signature(cls):
-        return get_signature(cls)
-
-    @classmethod
-    def get_module_name(cls):
-        return cls.__module__.split(".")[-1]
-
-    def to_dict(self):
-        return object_to_dict(self)
+    @abstractmethod
+    def trace(self, incoming, n):
+        pass

@@ -1,3 +1,4 @@
+import abc
 from itertools import chain
 from random import seed, randint, gauss
 from sys import maxsize
@@ -9,7 +10,7 @@ from .ray import Rays
 from . import Rotation, Position, Length
 
 
-class Source(Member):
+class Source(Member, metaclass=abc.ABCMeta):
 
     "Source base class"
 
@@ -22,6 +23,7 @@ class Source(Member):
 
         self.axis = array((0., 0., 1.0))
 
+    @abc.abstractmethod
     def generate(self, n):
         """Needs to be overridden by child classes.
         Should return Rays, probably limited by n.

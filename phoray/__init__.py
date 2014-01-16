@@ -1,9 +1,29 @@
+from abc import ABCMeta
 from collections import OrderedDict, Sequence
 import inspect
 
 from numpy import array, ndarray
 
 DEBUG = True
+
+
+class PhorayBase(object, metaclass=ABCMeta):
+
+    """Baseclass for all Phoray classes, with some basic meta stuff."""
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def signature(cls):
+        return get_signature(cls)
+
+    @classmethod
+    def get_module_name(cls):
+        return cls.__module__.split(".")[-1]
+
+    def to_dict(self):
+        return object_to_dict(self)
 
 
 def debug(*args):

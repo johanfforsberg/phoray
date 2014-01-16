@@ -9,21 +9,20 @@ from numpy import (array, dot, cross, where, sqrt,
 
 from .transformations import (rotation_matrix, angle_between_vectors,
                               vector_norm)
-from .ray import Ray, Rays
+from .ray import Rays
 from .solver import quadratic
-from . import Length, get_signature, object_to_dict
+from . import PhorayBase, Length
 
 
 __all__ = ("Plane", "Cylinder", "Sphere", "Ellipsoid",
            "Toroid", "Paraboloid")
 
 
-class Surface(object):
+class Surface(PhorayBase, metaclass=ABCMeta):
     """
     An abstract representation of a 3D surface.
     Should not be instantiated but serves as a base class to be inherited.
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self, xsize:Length=1.0, ysize:Length=1.0):
         self.xsize, self.ysize = xsize, ysize
@@ -115,7 +114,7 @@ class Surface(object):
         r_diff = g.T * x + a.T * y * sin(theta_m) + n.T * y * cos(theta_m)
         return Rays(P, r_diff.T, rays.wavelengths)
 
-    def refract(self, ray, i1, i2):
+    def refract(self, rays, i1, i2):
         """
         Refurns the refracted ray given an incident ray.
         Uses Snell's law. Does not simulate dispersion.
@@ -123,9 +122,9 @@ class Surface(object):
         FIXME: Completely wrong.
         TODO: port to numpy.
         """
-        P = self.intersect(ray)
+        P = self.intersect(rays)
         if P is not None:
-            r = ray.direction
+            r = ray.directions
             n = self.normal(P)
             dotp = dot(n, r)
             if dotp >= 0:
@@ -159,13 +158,6 @@ class Surface(object):
                 faces.append((current, current + 1, current + 2 + res))
                 faces.append((current, current + 2 + res, current + 1 + res))
         return verts, faces
-
-    @classmethod
-    def signature(cls):
-        return get_signature(cls)
-
-    def to_dict(self):
-        return object_to_dict(self)
 
 
 class Plane(Surface):
