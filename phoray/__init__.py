@@ -1,4 +1,4 @@
-from abc import ABCMeta
+import abc
 from collections import OrderedDict, Sequence
 import inspect
 
@@ -7,10 +7,11 @@ from numpy import array, ndarray
 DEBUG = True
 
 
-class PhorayBase(object, metaclass=ABCMeta):
+class PhorayBase(object, metaclass=abc.ABCMeta):
 
     """Baseclass for all Phoray classes, with some basic meta stuff."""
 
+    @abc.abstractmethod
     def __init__(self):
         pass
 
