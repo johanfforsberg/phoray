@@ -9,6 +9,8 @@ from .member import Member
 from .surface import Surface
 from .ray import Rays
 
+__all__ = ["Mirror", "Detector", "Screen", "ReflectiveGrating"]
+
 
 class Element(Member, metaclass=ABCMeta):
 
