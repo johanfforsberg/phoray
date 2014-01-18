@@ -3,9 +3,17 @@ html, body {
     font-family: Sans-Serif;
 }
 
+#sidebar {
+    background-color: #ddd;
+}
+
 #tree {
     padding: 5px;
     background-color: #eee;
+}
+
+#tree .selected {
+    background: #88f;
 }
 
 #spec {

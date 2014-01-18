@@ -84,7 +84,7 @@
 .jsonary .prompt-box {
 	position: relative;
 	text-align: left;
-	background-color: white;
+	/* background-color: white; */
 	border: 2px solid black;
 	border-radius: 10px;
 	padding: 1em;
@@ -301,7 +301,7 @@
 	margin-right: 0.5em;
 	margin-left: 0.5em;
 	border: 1px solid #DD3;
-	background-color: #FFB;
+	/* background-color: #FFB; */
 	padding-left: 0.5em;
 	padding-right: 0.5em;
 	color: #880;
@@ -351,8 +351,8 @@ textarea {
 }
 
 .json-object-outer {
-	background-color: #FFF;
-	background-color: rgba(255, 255, 255, 0.8);
+    /* background-color: #FFF; */
+    /* background-color: rgba(255, 255, 255, 0.3); */
 
 	padding: 0.1em;
 	padding-top: 0.0em;
@@ -467,7 +467,7 @@ textarea {
 	width: 12em;
 	border: 2px solid black;
 	border-radius: 10px;
-	background-color: white;
+	/* background-color: white; */
 	padding: 0.5em;
 	z-index: 1;
 	opacity: 0.95;
