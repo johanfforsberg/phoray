@@ -1,8 +1,9 @@
 Jsonary.getData("system", function (data) {
-    var meshes = {},
+    var meshes = {}, n_rays = 1000,
         spec_el = document.getElementById("spec");
 
     data.addSchema("system-schema.json");
+    console.log("verify", data.validate());
     data = data.editableCopy();  // make data editable
 
     // Create a drag-and-drop element tree
@@ -58,6 +59,10 @@ Jsonary.getData("system", function (data) {
 
     // Some nice buttons
 
+    document.getElementById("send-data").onclick = function (e) {
+        send();
+    };
+
     document.getElementById("add-child").onclick = function (e) {
         var path = tree.getSelectedPath();
         if (path !== undefined) {
@@ -78,10 +83,12 @@ Jsonary.getData("system", function (data) {
         }
     };
 
-    document.getElementById("send-data").onclick = function (e) {
-        send();
+    document.getElementById("show-footprint").onclick = function (e) {
+        var path = tree.getSelectedPath();
+        if (path) {
+            footprint(path);
+        }
     };
-
 
     // Obtain a mesh for a given geometry specification. Also keeps
     // a cache of meshes to prevent needless recalculation.
@@ -101,12 +108,14 @@ Jsonary.getData("system", function (data) {
 
     // Ask the server to trace the current system
     var trace = function (n) {
-        n = n || 100;
+        n = n || 1000;
         var t0 = Date.now();
         Backend.get("/trace?n=" + n, null, function () {
             var data = JSON.parse(this.responseText);
-            scene.drawTrace(data.traces);
             console.log("trace took " + (Date.now() - t0) + " ms.");
+            console.log(data);
+            scene.drawTrace(data.traces);
+            var selpath = tree.getSelectedPath();
         });
     };
 
@@ -174,7 +183,7 @@ Jsonary.getData("system", function (data) {
         Backend.post("system", data.value(), function () {
             var server_patch = JSON.parse(this.responseText);
             console.log("system patch", server_patch);
-            trace(100);
+            trace(n_rays);
             if (server_patch.length == 0) {
                 var t0 = Date.now();
                 //tree.update(patch);   // this breaks, but why?!
@@ -190,6 +199,47 @@ Jsonary.getData("system", function (data) {
         });
     }
 
+
+    // Takes care of resizing the sidebar
+    function setup_resize () {
+        var sidebar = document.getElementById("sidebar"),
+            scene_el = document.getElementById("scene"),
+            dragbar = document.getElementById("dragbar");
+
+        dragbar.onmousedown = function(e){
+
+            e.preventDefault();
+            document.onmousemove = function(e) {
+                sidebar.style.width = e.pageX + "px";
+                scene_el.style.left = e.pageX + "px";
+                scene.draw();
+            };
+        };
+        document.onmouseup = function(e) {
+            document.onmousemove = null;
+        };
+    }
+    setup_resize();
+
+    // Setyup the footprint plot dialog
+    var $footprint = $("#footprint");
+    $footprint.dialog({ autoOpen: false, width: 300, height: 300 });
+    $footprint.dialog("option", {title: "Footprint"});
+
+    function plot_footprint(fpdata) {
+        //console.log("data", element, fpdata);
+        if (fpdata) {
+            $footprint.empty();
+            $footprint.dialog("open");
+            d3plot( "#footprint", fpdata.footprint );
+        }
+    }
+
+    function footprint (element) {
+        console.log("get footprint", element);
+        $.get("/footprint", {element: element}, plot_footprint);
+    };
+
     // Called every time the data is changed, e.g. by the user
     Jsonary.registerChangeListener(debounce(function (patch, doc) {
         // Need to debounce here, because changing class can cause
@@ -201,6 +251,6 @@ Jsonary.getData("system", function (data) {
 
     }, 10));
 
-    trace(100);
+    trace(n_rays);
 
 });

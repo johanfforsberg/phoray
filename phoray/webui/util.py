@@ -73,6 +73,21 @@ def object_to_dict(obj, schemas):
 #     return objdict
 
 
+def get_subobj(obj, path):
+    print("get_subobj '%s'" % path)
+    steps = path.strip("/").split("/")
+    for step in steps:
+        if step == "args":
+            continue
+        try:
+            index = int(step)
+            obj = obj[index]
+        except ValueError:
+            if step:
+                obj = getattr(obj, step)
+    return obj
+
+
 def convert_attr(attr, schemas):
     if isinstance(attr, surface.Surface):
         return object_to_dict(attr, schemas)

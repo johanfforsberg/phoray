@@ -1,0 +1,22 @@
+#footprint {
+    background-color: white;
+    padding: 0px;
+}
+
+.plot text {
+    font: 10px sans-serif;
+}
+
+.plot .axis line, .axis path {
+    shape-rendering: crispEdges;
+    stroke: black;
+    fill: none;
+}
+
+.plot .grid .tick {
+    stroke: lightgrey;
+    opacity: 0.7;
+}
+.plot .grid path {
+      stroke-width: 0;
+}

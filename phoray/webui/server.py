@@ -5,12 +5,14 @@ from pprint import pprint
 from time import time
 
 from numpy import isnan, ndarray
+from pandas import DataFrame
 from bottle import (Bottle, request, run, static_file, JSONPlugin,
                     response)
 import jsonpatch
 
 from .meta import schemas, create_member, create_geometry
 from phoray.frame import GroupFrame
+from .util import get_subobj
 
 
 class NumpyAwareJSONEncoder(json.JSONEncoder):
@@ -87,22 +89,25 @@ def get_mesh():
 @app.get('/trace')
 def trace():
     """Trace the paths of a number of rays through a system."""
-    t0 = time()
     query = request.query
     #system = data[int(query.system)]
     #print("trace")
     #pprint(data)
     n = int(query.n)  # number of rays to trace
+    t0 = time()
     traces = data.trace(n=n)
+    dt = time() - t0
+    print("traced %d rays, took %f s." % (n, dt))
     #pprint(traces)
     # Format the footprint data for consumption by the UI.
     # Separates out the failed rays and add "dummies" for
-    # non-terminated ones. TODO: should be easier.
+    # non-terminated ones. TODO: very slow, find a better way.
     result = {}
+    t1 = time()
     for source, trace in traces.items():
         succeeded = []
         failed = []
-        for i in range(n):
+        for i in range(len(trace[0].endpoints)):
             tmp2 = []
             for j, tr in enumerate(trace):
                 broke = False
@@ -121,19 +126,20 @@ def trace():
                 succeeded.append(tmp2)
         result[source] = dict(succeeded=succeeded, failed=failed)
 
-    dt = time() - t0
-    print("traced %d rays, took %f s." % (n, dt))
+    print("trace treatment took", time() - t1, ":(")
+    # result = DataFrame(list(traces.values())).to_json()
     return dict(traces=result, time=dt)
+
 
 
 @app.get('/footprint')
 def footprint():
     """Return the current traced footprint for the given element."""
     query = request.query
-    sys_n = int(query.system)   # the containing system's index
-    ele_n = int(query.element)  # the chosen element's index
-
-    return {"footprint": data[sys_n].elements[ele_n].footprint}
+    element = get_subobj(data, query.element)
+    if hasattr(element, "footprint"):
+        footprint = list(element.footprint.values())[0]
+        return {"footprint": footprint}
 
 
 data = GroupFrame([])

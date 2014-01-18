@@ -3,7 +3,7 @@ from collections import defaultdict
 from math import *
 from abc import ABCMeta, abstractmethod
 
-from numpy import array, NaN, empty
+from numpy import array, NaN, empty, isfinite
 
 from .member import Member
 from .surface import Surface
@@ -31,9 +31,11 @@ class Element(Member, metaclass=ABCMeta):
         for source, rays in incoming.items():
             new_rays = self.propagate(self.localize(rays[-1]))
             if self.save_footprint:
-                self.footprint[source] = array((new_rays.endpoints.T[0],
-                                                new_rays.endpoints.T[1],
-                                                new_rays.wavelengths)).T
+                fp = array((new_rays.endpoints.T[0],
+                            new_rays.endpoints.T[1],
+                            new_rays.wavelengths))
+                # remove rays that missed
+                self.footprint[source] = fp.T[isfinite(fp[0])]
             outgoing[source] = [self.globalize(new_rays)]
         return outgoing
 
