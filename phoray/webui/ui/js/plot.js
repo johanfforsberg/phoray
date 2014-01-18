@@ -2,7 +2,7 @@ var d3plot = {};
 
 (function () {
 
-    var margin = {top: 5, right: 5, bottom: 20, left: 30};
+    var margin = {top: 5, right: 5, bottom: 5, left: 5};
 
     d3plot = function (element, data) {
 
@@ -26,11 +26,11 @@ var d3plot = {};
 
         var x = d3.scale.linear()
                 .domain([xmin - 0.1 * xwidth, xmax + 0.1 * xwidth])
-                .range([0, innerWidth]);
+                .range([innerWidth*0.05, innerWidth*0.95]);
 
         var y = d3.scale.linear()
                 .domain([ymin - 0.1 * ywidth, ymax + 0.1 * ywidth])
-    	        .range([innerHeight, 0]);
+    	        .range([innerHeight*0.95, innerHeight*0.05]);
 
         var chart = d3.select(element)
 	        .append('svg:svg')
@@ -48,8 +48,8 @@ var d3plot = {};
         // draw the x axis
         var xAxis = d3.svg.axis()
 	        .scale(x)
-	        .orient('bottom')
-                .ticks(5);
+	        .orient('top')
+                .ticks(5, "s");
 
         main.append('g')
 	    .attr('transform', 'translate(0,' + innerHeight + ')')
@@ -59,8 +59,8 @@ var d3plot = {};
         // draw the y axis
         var yAxis = d3.svg.axis()
 	        .scale(y)
-	        .orient('left')
-                .ticks(5);
+	        .orient('right')
+                .ticks(5, "s");
 
         main.append('g')
 	    .attr('transform', 'translate(0,0)')

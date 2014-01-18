@@ -4,7 +4,7 @@
 }
 
 .plot text {
-    font: 10px sans-serif;
+    font: 12px sans-serif;
 }
 
 .plot .axis line, .axis path {
@@ -19,4 +19,8 @@
 }
 .plot .grid path {
       stroke-width: 0;
+}
+
+circle {
+    fill: red;
 }
