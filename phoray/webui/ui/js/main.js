@@ -218,6 +218,7 @@ Jsonary.getData("system", function (data) {
         document.onmouseup = function(e) {
             document.onmousemove = null;
         };
+
     }
     setup_resize();
 
@@ -226,7 +227,7 @@ Jsonary.getData("system", function (data) {
     $footprint.dialog({ autoOpen: false, width: 300, height: 300 });
     $footprint.dialog("option", {title: "Footprint"});
 
-    function plot_footprint(fpdata) {
+    function plot_footprint(fpdata, path) {
         //console.log("data", element, fpdata);
         if (fpdata) {
             $footprint.empty();
@@ -237,7 +238,8 @@ Jsonary.getData("system", function (data) {
 
     function footprint (element) {
         console.log("get footprint", element);
-        $.get("/footprint", {element: element}, plot_footprint);
+        $.get("/footprint", {element: element},
+              function (data) {plot_footprint(data, element);});
     };
 
     // Called every time the data is changed, e.g. by the user

@@ -14,11 +14,23 @@ var d3plot = {};
             innerHeight = height - (margin.top + margin.bottom);
         console.log(data);
 
-        var xmin = d3.min(data, function(d) { return d[0]; }),
-            xmax = d3.max(data, function(d) { return d[0]; }),
-            ymin = d3.min(data, function(d) { return d[1]; }),
-            ymax = d3.max(data, function(d) { return d[1]; }),
-            xwidth = xmax - xmin, ywidth = ymax - ymin;
+        // ugh!
+        var xmin = d3.min(data[0], function(d) { return d[0]; }),
+            xmax = d3.max(data[0], function(d) { return d[0]; }),
+            ymin = d3.min(data[0], function(d) { return d[1]; }),
+            ymax = d3.max(data[0], function(d) { return d[1]; }),
+            wlmax = d3.max(data[0], function(d) { return d[2]; }),
+            wlmin = d3.max(data[0], function(d) { return d[2]; });
+        for (var i in data) {
+            xmin = Math.min(xmin, d3.min(data[i], function(d) { return d[0]; })),
+            xmax = Math.max(xmax, d3.max(data[i], function(d) { return d[0]; })),
+            ymin = Math.min(ymin, d3.min(data[i], function(d) { return d[1]; })),
+            ymax = Math.max(ymax, d3.max(data[i], function(d) { return d[1]; }));
+            wlmax = Math.max(wlmax, d3.max(data[i], function(d) { return d[2]; }));
+            wlmin = Math.min(wlmax, d3.min(data[i], function(d) { return d[2]; }));
+        }
+
+        var xwidth = xmax - xmin, ywidth = ymax - ymin;
         if (xwidth === 0)
             xwidth = 1;
         if (ywidth === 0)
@@ -69,12 +81,23 @@ var d3plot = {};
 
         var g = main.append("svg:g");
 
-        g.selectAll("scatter-dots")
-            .data(data)
-            .enter().append("svg:circle")
-            .attr("cx", function (d,i) { return x(d[0]); } )
-            .attr("cy", function (d) { return y(d[1]); } )
-            .attr("r", 1);
+        var colors = ["red", "violet", "blue"];
+        var colorscale = d3.scale.linear()
+                .domain([0, colors.length - 1])
+                .range([wlmin, wlmax]);
+        var color = d3.scale.linear()
+                .domain(d3.range(colors.length).map(colorscale))
+                .range(colors);
+
+        for (i in data) {
+            g.selectAll("scatter-dots-" + i)
+                .data(data[i])
+                .enter().append("svg:circle")
+                .attr("cx", function (d,i) { return x(d[0]); } )
+                .attr("cy", function (d) { return y(d[1]); } )
+                .attr("r", 1)
+                .attr("fill", function (d) {return color(d[2]);});
+        }
     };
 
     var debounce = function(fn, timeout) {
