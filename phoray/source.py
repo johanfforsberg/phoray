@@ -70,7 +70,7 @@ class GridSource(Source):
 
         rays = self.globalize(
             Rays(endpoints=s, directions=d,
-                 wavelengths=ones((n,)) * self.wavelength))
+                 wavelengths=ones((n**3,)) * self.wavelength))
 
         return rays
 
