@@ -44,10 +44,7 @@
 
 .root .node .description {
     pointer-events: none;
-}
-
-.root .node .description button {
-    pointer-events: auto;
+    padding: 0 3px;
 }
 
 .root .node .description.selected {
