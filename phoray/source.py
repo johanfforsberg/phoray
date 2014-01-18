@@ -3,8 +3,8 @@ from itertools import chain
 from random import seed, randint, gauss
 from sys import maxsize
 
-from numpy import array, ones, zeros, random
-
+from numpy import (array, ones, zeros, random,
+                   linspace, meshgrid, hstack, vstack)
 from .member import Member
 from .ray import Rays
 from . import Rotation, Position, Length
@@ -43,6 +43,36 @@ class TrivialSource(Source):
         directions = ones((n, 3)) * self.axis
         rays = Rays(endpoints, directions, zeros(n))
         return self.globalize(rays)
+
+
+class GridSource(Source):
+
+    """Sends out rays in a regular grid shape."""
+
+    def __init__(self, size:Position=(0, 0, 0), divergence:Position=(0, 0, 0),
+                 resolution:int=10, *args, **kwargs):
+        self.size = Position(size)
+        self.divergence = Position(divergence)
+        self.resolution = resolution
+        Source.__init__(self, *args, **kwargs)
+
+    def generate(self, _):
+        """TODO: make it more efficient by skipping identical rays."""
+        n = self.resolution
+        sx, sy, sz = self.size
+        s = vstack(hstack(array(meshgrid(*(linspace(-s/2, s/2, n)
+                                           for s in self.size))).T))
+
+        dx, dy, dz = self.divergence
+        d = vstack(hstack(array(meshgrid(linspace(-dx/2, dx/2, n),
+                                         linspace(-dy/2, dy/2, n),
+                                         zeros(n))).T + self.axis))
+
+        rays = self.globalize(
+            Rays(endpoints=s, directions=d,
+                 wavelengths=ones((n,)) * self.wavelength))
+
+        return rays
 
 
 class GaussianSource(Source):
