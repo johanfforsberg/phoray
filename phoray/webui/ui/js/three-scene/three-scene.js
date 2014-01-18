@@ -13,10 +13,15 @@ var ThreeScene;
         this.positionPath = options.positionPath || "position";
         this.rotationPath = options.rotationPath || "rotation";
         this.meshFunction = options.meshFunction;
+
+        this.fancyTrace = false;
+        this.meshFrontColor = 0x447744,
+        this.meshBackColor = 0xAA7744,
         this.onSelect = options.onSelect || function () {};
         // TODO: detect webgl!
         this.view = new View(this.element, this.onSelect);
         this.draw();
+        setupGui(this);
     };
 
     ThreeScene.prototype.setData = function (data) {
@@ -37,14 +42,18 @@ var ThreeScene;
                 var selobj = getObjectFromPath(this, this.selectedPath);
                 this.view.setVisibility(selobj, "outline", true);
             }
+            if (this.traceData) {
+                this.drawTrace(this.traceData);
+            }
             this.view.render();
         }
     };
 
     ThreeScene.prototype.drawTrace = function (data) {
+        this.traceData = data;
         if (this.trace)
             this.view.root.remove(this.trace);
-        this.trace = makeTrace(data);
+        this.trace = makeTrace(data, null, this.fancyTrace);
         this.view.root.add(this.trace);
         this.view.render();
     };
@@ -71,6 +80,15 @@ var ThreeScene;
             this.view.setVisibility(obj, "axis", true);
             this.view.render();
         }
+    };
+
+    function setupGui(scene) {
+        var gui = new dat.GUI();
+        gui.remember(scene);
+        gui.add(scene, 'fancyTrace').onChange(scene.draw.bind(scene));
+        gui.addColor(scene, 'meshFrontColor').onChange(scene.draw.bind(scene));
+        gui.addColor(scene, 'meshBackColor').onChange(scene.draw.bind(scene));
+        gui.closed = true;
     };
 
     var radians = Math.PI / 180;
@@ -159,7 +177,8 @@ var ThreeScene;
                 var verts = mesh ? mesh.verts : null,
                     faces = mesh? mesh.faces : null;
                 if (verts && faces) {
-                    obj.add(makeMesh(verts, faces));
+                    obj.add(makeMesh(verts, faces,
+                                     scene.meshFrontColor, scene.meshBackColor));
                     var outline = makeOutline(verts);
                     outline.renderDepth = -100;
                     outline.visible = false;
@@ -185,7 +204,7 @@ var ThreeScene;
     }
 
     // Create a THREE mesh out of vertex/face lists
-    function makeMesh (verts, faces) {
+    function makeMesh (verts, faces, frontColor, backColor) {
         var geom = new THREE.Geometry();
         verts.forEach(function (vert) {
             geom.vertices.push(new THREE.Vector3(vert[0], vert[1], vert[2]));
@@ -198,9 +217,9 @@ var ThreeScene;
         var mesh = new THREE.Object3D();
         var frontmat = new THREE.MeshLambertMaterial(
             {
-                color: 0xAAFFFF,
-                transparent: true,
-                opacity: 0.7,
+                color: frontColor,
+                //transparent: true,
+                //opacity: 0.7,
                 side: THREE.FrontSide,
                 shading: THREE.SmoothShading
             });
@@ -208,9 +227,9 @@ var ThreeScene;
         mesh.add(mesh.front);
         var backmat = new THREE.MeshLambertMaterial(
             {
-                color: 0xFFFF88,
-                transparent: true,
-                opacity: 0.7,
+                color: backColor,
+                //transparent: true,
+                //opacity: 0.7,
                 side: THREE.BackSide,
                 shading: THREE.SmoothShading
             });
@@ -282,7 +301,8 @@ var ThreeScene;
         return ~~(r * factor) << 16 ^ ~~(g * factor) << 8 ^ ~~(b * factor);
     };
 
-    var makeTrace = function (data, colors) {
+    var makeTrace = function (data, colors, fancy) {
+
 	var traces = new THREE.Object3D(), tmpdata, start, end, geometry,
             trace, line, i, j, n, m;
 
@@ -308,15 +328,24 @@ var ThreeScene;
                 }
             }
 	    //line = new THREE.Line(geometry, self.shaderMaterial, THREE.LinePieces);
-            line = new THREE.Line(
-                geometry, new THREE.LineBasicMaterial( {
-                    //color: color_from_string_times(colors[system], Math.random()),
-                    //color: color_from_string_times(colors[system]),
-                    color: color_from_string("#ffffff"),
-                    opacity: 0.2, linewidth: 1, //dashSize: 0.0002, gapSize: 0.001,
-		    depthTest: true,
-		    blending: THREE.AdditiveBlending, transparent: true
-                }), THREE.LinePieces);
+            var linemat = new THREE.LineDashedMaterial( {
+                //color: color_from_string_times(colors[system], Math.random()),
+                //color: color_from_string_times(colors[system]),
+                color: color_from_string("#ffffff"),
+                opacity: 1, linewidth: 1,
+                dashSize: 1, gapSize: 0,
+                //dashSize: 0.1, gapSize: 0.4,
+		//blending: THREE.AdditiveBlending,
+                //transparent: true
+            });
+            if (fancy) {
+		linemat.depthTest = false;
+                linemat.transparent = true;
+                linemat.opacity = 1 / Math.sqrt(m);
+                linemat.dashSize = 0.0002;
+                linemat.gapSize = 0.001;
+            }
+            line = new THREE.Line(geometry, linemat, THREE.LinePieces);
 	    geometry.computeLineDistances();
             traces.add(line);
 
@@ -349,5 +378,6 @@ var ThreeScene;
 
         return traces;
     };
+
 
 })();

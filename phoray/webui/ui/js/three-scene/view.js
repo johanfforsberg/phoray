@@ -7,15 +7,12 @@ var View;
      */
 
     View = function (element, onSelect) {
-        this.renderer = new THREE.WebGLRenderer({antialias: true});
+        this.renderer = new THREE.WebGLRenderer({antialias: false});
         this.renderer.setClearColor(0x3f3f3f);
 
         this.onSelect = onSelect;
 
         this.renderer.autoClear = false;
-
-        var view_width = element.offsetWidth,
-            view_height = element.offsetHeight;
 
         // Camera coodinates
         this.theta = -Math.PI / 4;
@@ -29,12 +26,14 @@ var View;
         this.right_mouse_down = false;
         this.scale = 1;
 
+        var view_width = element.offsetWidth,
+            view_height = element.offsetHeight;
+        this.renderer.setSize( view_width, view_height );
         //this.element.parentNode.replaceChild(this.renderer.domElement, this.element);
         element.appendChild(this.renderer.domElement);
         this.element = this.renderer.domElement;
         this.element.id = "view";
-        this.renderer.setSize( view_width, view_height );
-        //this.renderer.sortObjects = false;
+        this.renderer.sortObjects = false;
 
         this.scene = new THREE.Scene();
         this.root = new THREE.Object3D();  // the scene's objects will be added to this
@@ -203,6 +202,9 @@ var View;
     };
 
     View.prototype.clear = function () {
+        var view_width = this.element.offsetWidth,
+            view_height = this.element.offsetHeight;
+        this.renderer.setSize( view_width, view_height );
         for (var i in this.root.children) {
             this.root.remove(this.root.children[i]);
         }
