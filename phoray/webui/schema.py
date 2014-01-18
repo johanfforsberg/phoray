@@ -12,7 +12,6 @@ def type_or_ref(t, mapping):
     reference to another description, for the given type (assuming it
     is known).
     """
-    # maps from python types to JSON-schema
     m = mapping.get(t.__name__)
     if m is None:
         return m
@@ -69,9 +68,13 @@ def make_schema(classes):
         "Position": "#/definitions/Vector",
         "Surface": "#/definitions/Geometry",
         "Member": "#/definitions/Member"}
-    for base, subclss in classes.items():
-        for name in subclss:
-            type_mapping[name] = "#/definitions/%s/%s" % (base, name)
+    for _, clss in classes.items():
+        for name, cls in clss.items():
+            module, name = name.split(".")
+            if name in classes["member"]:
+                type_mapping[name] = "#/definitions/%s/%s" % (module, name)
+            else:
+                type_mapping[name] = "#/definitions/other/%s" % name
 
     member_subclasses = OrderedDict()
     for name, cls in classes["member"].items():
@@ -79,7 +82,6 @@ def make_schema(classes):
     geometry_subclasses = OrderedDict(
         (name, schema_from_class(cls, type_mapping))
         for name, cls in list(classes["surface"].items())[:])
-
 
     # member_subclasses = OrderedDict(
     #     (name, schema_from_class(cls, type_mapping))
@@ -110,16 +112,18 @@ def make_schema(classes):
         "oneOf": [{"$ref": "#/definitions/%s" % name.replace(".", "/")}
                   for name in geometry_subclasses]}
 
-    definitions["frame"] = {name.split(".")[-1]: member_subclasses[name]
-                            for name in classes["frame"]}
-    definitions["element"] = {name.split(".")[-1]: member_subclasses[name]
-                              for name in classes["element"]}
-    definitions["source"] = {name.split(".")[-1]: member_subclasses[name]
-                             for name in classes["source"]}
+    definitions["other"] = OrderedDict()
+    for grp in ["element", "source", "frame"]:
+        definitions[grp] = {}
+        for name, cls in classes[grp].items():
+            classname = name.split(".")[-1]
+            if name in member_subclasses:
+                definitions[grp][classname] = member_subclasses[name]
+            else:
+                definitions["other"][classname] = schema_from_class(cls, type_mapping)
+
     definitions["surface"] = {name.split(".")[-1]: geometry_subclasses[name]
                               for name in classes["surface"]}
-    # definitions.update(geometry_subclasses)
-    # definitions.update(member_subclasses)
 
     return schema
 

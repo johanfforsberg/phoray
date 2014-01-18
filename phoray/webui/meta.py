@@ -6,6 +6,7 @@ from operator import itemgetter
 from pprint import pprint
 
 from phoray import PhorayBase, frame, element, surface, source
+from phoray.member import Member
 from .schema import make_schema
 
 # Some plugin stuff, not really ready for use
@@ -20,7 +21,7 @@ from .schema import make_schema
 #     for name, cls in sorted(getmembers(module, isclass), key=itemgetter(0))]
 
 
-def get_classes(module):
+def get_classes(module, base=PhorayBase):
     """Return a dict of Phoray classes contained in a given module."""
     module_dict = module.__dict__
     if "__all__" in module_dict:
@@ -32,15 +33,16 @@ def get_classes(module):
     return OrderedDict(("%s.%s" % (cls.get_module_name(), name), cls)
                        for name, cls in class_members
                        if cls.__module__ == module.__name__ and
-                       PhorayBase in getmro(cls) and
+                       base in getmro(cls) and
                        not isabstract(cls))
 
 # List all the things we can create
 classes = dict(frame=get_classes(frame), element=get_classes(element),
                source=get_classes(source), surface=get_classes(surface))
-classes["member"] = OrderedDict(chain(classes["frame"].items(),
-                                      classes["element"].items(),
-                                      classes["source"].items()))
+#classes["all"] = dict(chain(*[clss.items() for clss in classes.values()]))
+classes["member"] = OrderedDict(chain(get_classes(frame, Member).items(),
+                                      get_classes(element, Member).items(),
+                                      get_classes(source, Member).items()))
 print("\n".join(classes["member"].keys()))
 
 schemas = make_schema(classes)
