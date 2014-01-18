@@ -15,6 +15,7 @@ var ThreeScene;
         this.meshFunction = options.meshFunction;
 
         this.fancyTrace = false;
+        this.traceAlpha = 1.0;
         this.meshFrontColor = 0x447744,
         this.meshBackColor = 0xAA7744,
         this.onSelect = options.onSelect || function () {};
@@ -53,7 +54,7 @@ var ThreeScene;
         this.traceData = data;
         if (this.trace)
             this.view.root.remove(this.trace);
-        this.trace = makeTrace(data, null, this.fancyTrace);
+        this.trace = makeTrace(data, null, this.fancyTrace, this.traceAlpha);
         this.view.root.add(this.trace);
         this.view.render();
     };
@@ -85,9 +86,10 @@ var ThreeScene;
     function setupGui(scene) {
         var gui = new dat.GUI();
         gui.remember(scene);
-        gui.add(scene, 'fancyTrace').onChange(scene.draw.bind(scene));
         gui.addColor(scene, 'meshFrontColor').onChange(scene.draw.bind(scene));
         gui.addColor(scene, 'meshBackColor').onChange(scene.draw.bind(scene));
+        gui.add(scene, 'fancyTrace').onChange(scene.draw.bind(scene));
+        gui.add(scene, 'traceAlpha', 0, 1).onChange(scene.draw.bind(scene));
         gui.closed = true;
     };
 
@@ -301,7 +303,7 @@ var ThreeScene;
         return ~~(r * factor) << 16 ^ ~~(g * factor) << 8 ^ ~~(b * factor);
     };
 
-    var makeTrace = function (data, colors, fancy) {
+    var makeTrace = function (data, colors, fancy, alpha) {
 
 	var traces = new THREE.Object3D(), tmpdata, start, end, geometry,
             trace, line, i, j, n, m;
@@ -332,7 +334,7 @@ var ThreeScene;
                 //color: color_from_string_times(colors[system], Math.random()),
                 //color: color_from_string_times(colors[system]),
                 color: color_from_string("#ffffff"),
-                opacity: 1, linewidth: 1,
+                opacity: alpha, linewidth: 1,
                 dashSize: 1, gapSize: 0,
                 //dashSize: 0.1, gapSize: 0.4,
 		//blending: THREE.AdditiveBlending,
@@ -341,7 +343,7 @@ var ThreeScene;
             if (fancy) {
 		linemat.depthTest = false;
                 linemat.transparent = true;
-                linemat.opacity = 1 / Math.sqrt(m);
+                linemat.opacity = 1 / Math.pow(m, 1/3) * alpha;
                 linemat.dashSize = 0.0002;
                 linemat.gapSize = 0.001;
             }
