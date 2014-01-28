@@ -5,7 +5,6 @@ from pprint import pprint
 from time import time
 
 from numpy import isnan, ndarray
-from pandas import DataFrame
 from bottle import (Bottle, request, run, static_file, JSONPlugin,
                     response)
 import jsonpatch
