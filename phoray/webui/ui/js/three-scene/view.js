@@ -7,10 +7,22 @@ var View;
      */
 
     View = function (element, onSelect) {
-        this.renderer = new THREE.WebGLRenderer({antialias: false});
-        this.renderer.setClearColor(0x3f3f3f);
+
+        var events = this.events = {
+            cameraChanged: new signals.Signal(),
+            sceneChanged: new signals.Signal(),
+            selectionChanged: new signals.Signal()
+        };
+
+        events.cameraChanged.add(function () {
+            console.log("camera chanfed");
+            this.render();
+        }.bind(this));
 
         this.onSelect = onSelect;
+
+        this.renderer = new THREE.WebGLRenderer({antialias: false});
+        this.renderer.setClearColor(0x3f3f3f);
 
         this.renderer.autoClear = false;
 
@@ -30,23 +42,31 @@ var View;
             view_height = element.offsetHeight;
         this.renderer.setSize( view_width, view_height );
         //this.element.parentNode.replaceChild(this.renderer.domElement, this.element);
-        element.appendChild(this.renderer.domElement);
         this.element = this.renderer.domElement;
+        element.appendChild(this.element);
         this.element.id = "view";
         this.renderer.sortObjects = false;
 
         this.scene = new THREE.Scene();
+        this.sceneHelpers = new THREE.Scene();
+        this.helpers = {};
+
         this.root = new THREE.Object3D();  // the scene's objects will be added to this
         this.root.name = "root";
         this.scene.add(this.root);
         this.overlay = new THREE.Scene();
         this.selected = null;
-        this.camera = new THREE.OrthographicAspectCamera(
-            20, view_width / view_height, 0.1, 100
-        );
-	//this.camera = new THREE.PerspectiveCamera( 20, view_width/view_height, 1, 10000 );
+        // var camera = this.camera = new THREE.OrthographicAspectCamera(
+        //     20, view_width / view_height, 0.1, 100
+        // );
+        // var camera = this.camera = new THREE.OrthographicCamera(
+        //     -20, 20, 10, -10, 0.1, 100
+        // );
+
+        var camera = this.camera = new THREE.PerspectiveCamera( 20, view_width/view_height, 1, 10000 );
         this.camera_offset = {x: 0, y: 0, z: 0};
 
+        this.ray = new THREE.Raycaster();
 	this.projector = new THREE.Projector();
 
         this.setup_lights();
@@ -54,7 +74,121 @@ var View;
         this.setup_input();
 
         this.rotate();
+        this.controls = new THREE.EditorControls(camera, this.element);
+	this.controls.addEventListener( 'change', function () {
+
+            console.log("editor control change");
+
+	    this.transformcontrols.update();
+	    this.events.cameraChanged.dispatch( camera );
+
+	}.bind(this));
+
+        this.transformcontrols = new THREE.TransformControls(this.camera,
+                                                             this.element);
+	this.transformcontrols.addEventListener( 'change', function (e) {
+            console.log("change", this.transformcontrols.object.path);
+	    this.controls.enabled = true;
+	    if ( this.transformcontrols.axis !== undefined ) {
+		this.controls.enabled = false;
+	    }
+            this.events.sceneChanged.dispatch();
+	}.bind(this));
+
+        this.sceneHelpers.add(this.transformcontrols);
+        events.sceneChanged.add(this.render.bind(this));
+        //events.cameraChanged.add(this.render.bind(this));
+
         this.render();
+    };
+
+    View.prototype.setup_input = function () {
+
+        var self = this;
+
+	var getIntersects = function ( event, object ) {
+	    var rect = self.element.getBoundingClientRect();
+	    var x = ( event.clientX - rect.left ) / rect.width,
+		y = ( event.clientY - rect.top ) / rect.height;
+
+	    var vector = new THREE.Vector3( ( x ) * 2 - 1, - ( y ) * 2 + 1, 0.5 );
+	    self.projector.unprojectVector( vector, self.camera );
+	    self.ray.set( self.camera.position,
+                          vector.sub( self.camera.position ).normalize() );
+
+	    if ( object instanceof Array ) {
+		return self.ray.intersectObjects( object );
+	    }
+	    return self.ray.intersectObject( object, true );
+
+	};
+
+	var onMouseDownPosition = new THREE.Vector2();
+	var onMouseUpPosition = new THREE.Vector2();
+
+	var onMouseDown = function ( event ) {
+
+	    event.preventDefault();
+
+	    var rect = self.element.getBoundingClientRect();
+	    var x = (event.clientX - rect.left) / rect.width,
+		y = (event.clientY - rect.top) / rect.height;
+	    onMouseDownPosition.set( x, y );
+
+	    document.addEventListener( 'mouseup', onMouseUp, false );
+
+	};
+
+	var onMouseUp = function ( event ) {
+
+	    var rect = self.element.getBoundingClientRect(),
+	        x = (event.clientX - rect.left) / rect.width,
+	        y = (event.clientY - rect.top) / rect.height;
+	    onMouseUpPosition.set( x, y );
+
+	    if ( onMouseDownPosition.distanceTo( onMouseUpPosition ) == 0 ) {
+		var intersects = getIntersects( event, self.root );
+                console.log(intersects);
+		if ( intersects.length > 0 ) {
+		    var object = intersects[0].object;
+                    console.log("selected object", object);
+		    if ( object.userData.object !== undefined ) {
+			// helper
+			self.transformcontrols.attach( object.userData.object );
+		    } else while (object) {
+                        // may be a sub-object of an element, e.g. a mesh
+                        if (object.path) {
+			    self.transformcontrols.attach( object );
+                            console.log("select", object.path);
+                            self.onSelect(object.path);
+                            break;
+                        }
+                        object = object.parent;
+		    }
+		} else {
+		    self.transformcontrols.detach();
+		}
+		self.render();
+	    }
+
+	    document.removeEventListener( 'mouseup', onMouseUp );
+
+	};
+
+	var onDoubleClick = function ( event ) {
+
+		var intersects = getIntersects( event, objects );
+
+		if ( intersects.length > 0 && intersects[ 0 ].object === editor.selected ) {
+
+			controls.focus( editor.selected );
+
+		}
+
+	};
+
+	self.element.addEventListener( 'mousedown', onMouseDown, false );
+	self.element.addEventListener( 'dblclick', onDoubleClick, false );
     };
 
     View.prototype.setup_lights = function () {
@@ -73,7 +207,7 @@ var View;
         light.lookAt( this.scene.position );
         this.scene.add( light );
 
-        light = new THREE.AmbientLight(0x606060);
+        light = new THREE.AmbientLight(0x202020);
         this.scene.add(light);
 
     };
@@ -97,108 +231,14 @@ var View;
 	    geometry.colors.push( color, color, color, color );
         }
         var grid = new THREE.Line( geometry, material, THREE.LinePieces );
+        grid.name = "grid";
 	//grid.renderDepth = -10;  // prevent the grid from obscuring rays
         this.scene.add(grid);
     };
 
-    View.prototype.setup_input = function () {
-
-        // TODO: this is all a hack, clean it up.
-
-        var element = this.element, view = this;
-
-        element.onclick = function (event) {
-            if (!view.mouse_pos) {
-                //view.mouse_pos = {x: event.clientX, y: event.clientY};
-                var rect = element.getBoundingClientRect(),
-	            pos = {x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-			   y: ((event.clientY - rect.top) / rect.height) * 2 - 1},
-	            vector = new THREE.Vector3(pos.x, pos.y, 0.5),
-                    ray = view.projector.pickingRay( vector, view.camera ),
-                    intersects = ray.intersectObject( view.root, true );
-                intersects = intersects.filter(function (i) {return i.face;});
-                if (intersects.length > 0) {
-                    var obj = intersects[0].object.parent.parent;
-                    if (view.selected != obj) {
-                        view.onSelect(obj.path);
-                    }
-                }
-            }
-        };
-
-        element.onmousedown = function (event) {
-            event.preventDefault();
-            var rect = element.getBoundingClientRect();
-	    view.mouse_start = {x: ( (event.clientX) / rect.width ) * 2 - 1,
-			        y: ( (event.clientY) / rect.height ) * 2 - 1};
-
-            view.mouse_pos = null;
-
-            view.start_theta = view.theta;
-            view.start_phi = view.phi;
-
-	    if (event.button == 0)
-		element.onmousemove = mousemove_rotate;
-	    else if (event.button)
-		element.onmousemove = mousemove_pan;
-        };
-
-        element.onmouseup = element.onmouseout = function ( event ) {
-	    element.onmousemove = null;
-            view.left_mouse_down = view.right_mouse_down = false;
-        };
-
-        var mousemove_rotate = function ( event ) {
-	    event.preventDefault();
-            var rect = element.getBoundingClientRect();
-	    view.mouse_pos = {x: ( (event.clientX) / rect.width ) * 2 - 1,
-			      y: ( (event.clientY) / rect.height ) * 2 - 1};
-
-	    view.rotate();
-            view.render();
-        };
-
-        var mousemove_pan = function ( event ) {
-	    event.preventDefault();
-            var rect = element.getBoundingClientRect();
-	    view.mouse_pos = {x: ( (event.clientX) / rect.width ) * 2 - 1,
-			      y: ( (event.clientY) / rect.height ) * 2 - 1};
-	    view.pan();
-            view.render();
-        };
-
-        // helper for mousewheel events
-        var hookEvent = function (element, eventName, callback) {
-            if(typeof(element) == "string")
-                element = document.getElementById(element);
-            if(element == null)
-                return;
-            if(element.addEventListener)
-            {
-                if(eventName == 'mousewheel')
-                    element.addEventListener('DOMMouseScroll', callback, false);
-                element.addEventListener(eventName, callback, false);
-            }
-            else if(element.attachEvent)
-                element.attachEvent("on" + eventName, callback);
-        };
-
-        // attach callback for mousewheel zooming
-        hookEvent(element, "mousewheel", function (event) {
-            event = event ? event : window.event;
-            var wheelData = event.detail ? event.detail : event.wheelDelta;
-            var rect = element.getBoundingClientRect();
-            if (wheelData > 0)
-                view.scale *= 1.1;
-            else
-                view.scale /= 1.1;
-	    view.rotate();
-            view.render();
-        });
-    };
-
     View.prototype.add = function (obj) {
         this.root.add(obj);
+        this.transformcontrols.attach(obj);
     };
 
     View.prototype.clear = function () {
@@ -216,13 +256,13 @@ var View;
                             Math.max(-Math.PI/2, this.start_phi + 2 *
                                      (this.mouse_pos.y - this.mouse_start.y)));
 
-        this.camera.position.x = 20 * Math.sin(this.theta) * Math.cos(this.phi) +
+        this.camera.position.x = 50 * Math.sin(this.theta) * Math.cos(this.phi) +
 	    this.camera_offset.x;
-        this.camera.position.y = 20 * Math.sin(this.phi) + this.camera_offset.y;
-	this.camera.position.z = 20 * Math.cos(this.theta) * Math.cos(this.phi) +
+        this.camera.position.y = 50 * Math.sin(this.phi) + this.camera_offset.y;
+	this.camera.position.z = 50 * Math.cos(this.theta) * Math.cos(this.phi) +
 	    this.camera_offset.z;
-        this.camera.width = 20 * this.scale;
-        this.camera.height = 20 * this.scale;
+        this.camera.width = 50 * this.scale;
+        this.camera.height = 50 * this.scale;
         this.camera.updateProjectionMatrix();
 	this.camera.lookAt( this.scene.position );
     };
@@ -265,9 +305,13 @@ var View;
 
     View.prototype.render = function (mouse_coords) {
         this.renderer.clear();
+	//this.transformcontrols.update();
         // draw outlines "behind" objects
         //setVisibility(this.root, true, "outline");
+	this.scene.updateMatrixWorld();
+        this.transformcontrols.update();
         this.renderer.render( this.scene, this.camera );
+        this.renderer.render( this.sceneHelpers, this.camera );
         // this.renderer.clear( false, true, false ); // clear depth buffer
         // setVisibility(this.root, false, "outline");
         // this.renderer.render( this.scene, this.camera );

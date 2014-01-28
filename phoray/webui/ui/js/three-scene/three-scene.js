@@ -13,12 +13,12 @@ var ThreeScene;
         this.positionPath = options.positionPath || "position";
         this.rotationPath = options.rotationPath || "rotation";
         this.meshFunction = options.meshFunction;
-
         this.fancyTrace = false;
         this.traceAlpha = 1.0;
         this.meshFrontColor = 0x447744,
         this.meshBackColor = 0xAA7744,
         this.onSelect = options.onSelect || function () {};
+
         // TODO: detect webgl!
         this.view = new View(this.element, this.onSelect);
         this.draw();
@@ -27,6 +27,7 @@ var ThreeScene;
 
     ThreeScene.prototype.setData = function (data) {
         this.data = data;
+        console.log("data", data);
         this.draw();
     };
 
@@ -166,10 +167,10 @@ var ThreeScene;
             rotation = getPath(data, scene.rotationPath),
             axis = makeAxis(),
             obj = new THREE.Object3D();
-        obj.name = data.class;
-        obj.path = path;
+        obj.name = data["class"];
+        obj.path = path || "/";
         axis.visible = false;
-        obj.add(axis);
+        //obj.add(axis);
         obj.position.set(position.x, position.y, position.z);
         obj.rotation.set(rotation.x * radians,
                          rotation.y * radians,
@@ -226,6 +227,7 @@ var ThreeScene;
                 shading: THREE.SmoothShading
             });
         mesh.front = new THREE.Mesh( geom, frontmat );
+        mesh.front.name = "mesh front";
         mesh.add(mesh.front);
         var backmat = new THREE.MeshLambertMaterial(
             {
@@ -236,6 +238,7 @@ var ThreeScene;
                 shading: THREE.SmoothShading
             });
         mesh.back = new THREE.Mesh( geom, backmat  );
+        mesh.front.name = "mesh back";
         mesh.add(mesh.back);
         mesh.name = "mesh";
 
@@ -272,6 +275,8 @@ var ThreeScene;
             z1 = new THREE.Vector3(0, 0, 1),
             arrow_length = 0.15, arrow_width = 0.05;
 
+        axis.name = "axis";
+
         axis.add(new THREE.ArrowHelper(
             {x: 1, y: 0, z: 0},
             {x: 0, y: 0, z: 0},
@@ -307,6 +312,8 @@ var ThreeScene;
 
 	var traces = new THREE.Object3D(), tmpdata, start, end, geometry,
             trace, line, i, j, n, m;
+
+        traces.name = "traces";
 
         for (var src in data) {
             tmpdata = data[src];
