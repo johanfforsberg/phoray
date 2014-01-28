@@ -1,4 +1,4 @@
-== PHORAY ==
+## PHORAY ##
 
 A "physical" raytracer written in python.
 
@@ -9,7 +9,7 @@ plane. It is not intended for producing images of reflective spheres,
 but rather for simulating optical systems.
 
 
-== License ==
+## License ##
 
 Copytight 2013 Johan Forsberg (johan@slentrian.org)
 
@@ -25,8 +25,12 @@ General Public License for more details.
 
 <http://www.gnu.org/licenses/>
 
+Several third party JS libraries are included in the webui part, they
+are covered by their respective licenses and are only included here
+for convenience.
 
-== Disclaimer ==
+
+## Disclaimer ##
 
 This software is *very* rough and has lots of known issues. It is
 undergoing heavy development, and things may change without
@@ -34,16 +38,17 @@ notice. View it as a toy and do not even consider relying on it for
 anything what so ever.
 
 
-== Installation ==
+## Installation ##
 
 *TODO*
 
 
-== Requirements ==
+## Requirements ##
 
-Phoray requires Python v3.x.
+*Phoray requires Python v3.x.*
 
 It also depends on the following python modules:
+
 * numpy (http://www.numpy.org/).
 * jsonpatch (https://github.com/stefankoegl/python-json-patch)
 
@@ -53,12 +58,12 @@ e.g. through the package manager on Linux.
 
 Jsonpatch can easily be installed from PyPi, e.g. using pip:
 
-  pip install --user jsonpatch
+    pip install --user jsonpatch
 
 
-== Usage ==
+## Usage ##
 
-See examples. TODO: update the examples.
+See examples. *TODO:* update the examples.
 
 There is also a very experimental and incomplete browser UI, which can
 be started by running "./run_server" in the phoray directory. Then
@@ -67,6 +72,6 @@ around. (Note: only recent versions of Chrome and Firefox have been
 tested and are known to work.)
 
 
-== Running unit tests ==
+## Running Unit Tests ##
 
 Run "nosetests" (requires 'Nose' to be installed).
