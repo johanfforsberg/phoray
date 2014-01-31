@@ -1,3 +1,5 @@
+from random import seed
+
 from numpy import array
 
 from phoray.ray import Rays
@@ -5,6 +7,9 @@ from phoray.surface import Sphere
 from phoray.element import Mirror
 from phoray.source import GridSource
 from . import PhorayTestCase
+
+
+seed(123)  # make things more predictable
 
 
 class RaysTestCase(PhorayTestCase):
@@ -37,5 +42,4 @@ class RaysTestCase(PhorayTestCase):
         rays = {0: [source.generate()]}
         refl = mirror.trace(rays)
         a = refl[0][0].estimate_focus(100)
-
         self.assertAllClose(a, (-0.0, 0.57, 1.67), atol=0.05)
