@@ -3,8 +3,9 @@ from itertools import chain
 from random import seed, randint, gauss
 from sys import maxsize
 
-from numpy import (array, ones, zeros, random,
+from numpy import (array, ones, zeros, random, sum,
                    linspace, meshgrid, hstack, vstack)
+from numpy.linalg import norm
 from .member import Member
 from .ray import Rays
 from . import Rotation, Position, Length
@@ -56,7 +57,7 @@ class GridSource(Source):
         self.resolution = resolution
         Source.__init__(self, *args, **kwargs)
 
-    def generate(self, _):
+    def generate(self, _=None):
         """TODO: make it more efficient by skipping identical rays."""
         n = self.resolution
         sx, sy, sz = self.size
@@ -67,7 +68,7 @@ class GridSource(Source):
         d = vstack(hstack(array(meshgrid(linspace(-dx/2, dx/2, n),
                                          linspace(-dy/2, dy/2, n),
                                          zeros(n))).T + self.axis))
-
+        d = (d.T / sum(d**2, axis=1)**0.5).T
         rays = self.globalize(
             Rays(endpoints=s, directions=d,
                  wavelengths=ones((n**3,)) * self.wavelength))
@@ -105,7 +106,8 @@ class GaussianSource(Source):
         d = array((zeros(n) if dx == 0 else random.normal(0, dx, n),
                    zeros(n) if dy == 0 else random.normal(0, dy, n),
                    zeros(n))).T + self.axis
-
+        d = (d.T / sum(d**2, axis=1)**0.5).T  # this can't be the best way
+                                              # to normalize the directions
         rays = self.globalize(Rays(endpoints=s, directions=d,
                                    wavelengths=ones((n,)) * self.wavelength))
 

@@ -44,12 +44,18 @@ class Rays(object):
             p2 = self.endpoints[n2]
             r2 = self.directions[n2]
             try:
-                (x1, y1, z1), (x2, y2, z2) = closest_points(p1, r1, p2, r2)
+                s, t = closest_points(p1, r1, p2, r2)
             except ValueError:
                 samples -= 1
                 continue
+            x1, y1, z1 = p1 + s*r1
+            x2, y2, z2 = p2 + t*r2
+
             xsum += (x1 + x2)
             ysum += (y1 + y2)
             zsum += (z1 + z2)
 
-        return xsum / (2*samples), ysum / (2*samples), zsum / (2*samples)
+        if samples:
+            return xsum / (2*samples), ysum / (2*samples), zsum / (2*samples)
+        else:
+            return None

@@ -1,4 +1,4 @@
-from numpy import sqrt, where
+from numpy import sqrt, where, allclose
 
 
 def quadratic(a, b, c):
@@ -39,29 +39,27 @@ def closest_points(p, u, q, v):
     q1, q2, q3 = q
     v1, v2, v3 = v
 
-    # TODO: Considering that directions should always be normalized,
-    # this could be simplified. But can we really trust that?
+    print(u1, u2, u3)
 
-    y = ((u1**2 + u2**2 + u3**2)*(v1**2 + v2**2 + v3**2) -
-         (u1*v1 + u2*v2 + u3*v3)**2)
+    # make sure the directions are normalized
+    assert allclose(u1**2 + u2**2 + u3**2, 1.0)
+    assert allclose(v1**2 + v2**2 + v3**2, 1.0)
 
+    y = 1 - (u1*v1 + u2*v2 + u3*v3)**2
+
+    # plenty of simplification possible here, I'm sure
     if y != 0.0:
-        t = (((u1**2 + u2**2 + u3**2) *
-              (p1*v1 + p2*v2 + p3*v3 - q1*v1 - q2*v2 - q3*v3) -
+        t = (((p1*v1 + p2*v2 + p3*v3 - q1*v1 - q2*v2 - q3*v3) -
               (u1*v1 + u2*v2 + u3*v3) *
               (p1*u1 + p2*u2 + p3*u3 - q1*u1 - q2*u2 - q3*u3)) / y)
     else:
         t = None
 
-    x = (((u1**2 + u2**2 + u3**2)*(v1**2 + v2**2 + v3**2) -
-          (u1*v1 + u2*v2 + u3*v3)**2)*(u1**2 + u2**2 + u3**2))
+    x = 1 - (u1*v1 + u2*v2 + u3*v3)**2
 
     if x != 0.0:
-        s = ((((u1**2 + u2**2 + u3**2)*(v1**2 + v2**2 + v3**2) -
-               (u1*v1 + u2*v2 + u3*v3)**2) *
-              (-p1*u1 - p2*u2 - p3*u3 + q1*u1 + q2*u2 + q3*u3) +
-              ((u1**2 + u2**2 + u3**2) *
-               (p1*v1 + p2*v2 + p3*v3 - q1*v1 - q2*v2 - q3*v3) -
+        s = ((x * (-p1*u1 - p2*u2 - p3*u3 + q1*u1 + q2*u2 + q3*u3) +
+              ((p1*v1 + p2*v2 + p3*v3 - q1*v1 - q2*v2 - q3*v3) -
                (u1*v1 + u2*v2 + u3*v3) *
                (p1*u1 + p2*u2 + p3*u3 - q1*u1 - q2*u2 - q3*u3)) *
               (u1*v1 + u2*v2 + u3*v3)) / x)
@@ -75,7 +73,4 @@ def closest_points(p, u, q, v):
     if t is None and s is None:
         raise ValueError
 
-    P = (p1 + s*u1, p2 + s*u2, p3 + s*u3)
-    Q = (q1 + t*v1, q2 + t*v2, q3 + t*v3)
-
-    return P, Q
+    return s, t
