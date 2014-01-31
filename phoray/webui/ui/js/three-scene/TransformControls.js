@@ -828,7 +828,7 @@ THREE.TransformControls = function ( camera, domElement ) {
 		camPosition.setFromMatrixPosition( camera.matrixWorld );
 		camRotation.setFromRotationMatrix( tempMatrix.extractRotation( camera.matrixWorld ) );
 
-		scale = worldPosition.distanceTo( camPosition ) / 25 * scope.size;
+                scale = camera.width / 20;
 		this.position.copy( worldPosition );
 		this.scale.set( scale, scale, scale );
 

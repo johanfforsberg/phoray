@@ -68,16 +68,15 @@ THREE.EditorControls = function ( object, domElement ) {
 
 	this.zoom = function ( distance ) {
 
-
-                var direction = distance.z / Math.abs(distance.z);
+            var direction = distance.z / Math.abs(distance.z);
             console.log("zoom", object, direction);
-                // object.width *= 1 + 0.1 * direction;
-                // object.height *= 1 + 0.1 * direction;
-            //object.fov *= 1 + 0.1 * direction;
-            object.translateZ(direction);
-                object.updateProjectionMatrix();
+            object.width *= 1 + 0.1 * direction;
+            object.height *= 1 + 0.1 * direction;
+            object.fov *= 1 + 0.1 * direction;
+            //object.translateZ(direction);
+            object.updateProjectionMatrix();
 
-		scope.dispatchEvent( changeEvent );
+	    scope.dispatchEvent( changeEvent );
 
 	};
 
