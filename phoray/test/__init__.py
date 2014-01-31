@@ -4,5 +4,5 @@ from numpy import allclose
 
 class PhorayTestCase(TestCase):
 
-    def assertAllClose(self, a, b):
-        assert allclose(a, b), "Not close: %r, %r" % (a, b)
+    def assertAllClose(self, a, b, **kwargs):
+        assert allclose(a, b, **kwargs), "Not close: %r, %r" % (a, b)
